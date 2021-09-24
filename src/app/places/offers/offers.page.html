@@ -1,9 +1,22 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>offers</ion-title>
+    <ion-title>Offers List</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <p>Landed on Offers Page</p>
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12" size-sm="8" offset-sm="2" text-center>
+        <ion-list>
+          <ion-item *ngFor="let place of loadedPlaces" [routerLink]="['/', 'places', 'tabs', 'offers', place.id]" detail>
+            <ion-label>
+              <h2>{{ place.title }}</h2>
+              <p>{{ place.description }}</p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
 </ion-content>
