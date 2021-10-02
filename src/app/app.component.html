@@ -1,3 +1,35 @@
 <ion-app>
-  <ion-router-outlet></ion-router-outlet>
+  <ion-menu side="start" menuId="m1">
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Angular Ionic Template</ion-title>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <ion-list>
+        <ion-menu-toggle>
+          <ion-item routerLink="/places/tabs/search">
+            <ion-icon name="business" slot="start"></ion-icon>
+            <ion-label>Search for Places</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+        
+        <ion-menu-toggle>
+          <ion-item routerLink="/bookings">
+            <ion-icon name="checkbox-outline" slot="start"></ion-icon>
+            <ion-label>Your Bookings</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+        
+        <ion-menu-toggle>
+          <ion-item (click)="onLogout()">
+            <ion-icon name="exit" slot="start"></ion-icon>
+            <ion-label>Logout</ion-label>
+          </ion-item>
+        </ion-menu-toggle> 
+      </ion-list>
+    </ion-content>
+  </ion-menu>
+  <ion-router-outlet main></ion-router-outlet>
 </ion-app>
