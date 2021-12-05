@@ -23,8 +23,10 @@ export class NewOfferPage implements OnInit {
   }
 
   onCreateOffer() {
+    if (!this.offerForm.valid) {
+      return;
+    }
     console.log('will create offer');
     console.log(this.offerForm);
   }
-
 }
