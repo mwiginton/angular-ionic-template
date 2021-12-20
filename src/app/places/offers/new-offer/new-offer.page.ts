@@ -44,8 +44,6 @@ export class NewOfferPage implements OnInit {
         this.offerForm.reset();
         this.router.navigate(['/places/tabs/offers']);
       });  
-    });
-
-    
+    });   
   }
 }
