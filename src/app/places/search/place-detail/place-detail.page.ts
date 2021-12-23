@@ -1,10 +1,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { NavController, ModalController, ActionSheetController } from '@ionic/angular';
+import { NavController, ModalController, ActionSheetController, LoadingController } from '@ionic/angular';
 import { Place } from '../../place.model';
 import { PlacesService } from '../../places.service';
 import { CreateBookingComponent } from 'src/app/bookings/create-booking/create-booking.component';
 import { Subscription } from 'rxjs';
+import { BookingsService } from 'src/app/bookings/bookings.service';
+import { AuthService } from 'src/app/auth/auth.service';
 
 @Component({
   selector: 'app-place-detail',
@@ -20,7 +22,10 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private placesService: PlacesService,
     private modalCtrl: ModalController,
-    private actionSheetCtrl: ActionSheetController
+    private actionSheetCtrl: ActionSheetController,
+    private bookingService: BookingsService,
+    private authService: AuthService,
+    private loadingCtrl: LoadingController
   ) { }
 
   ngOnInit() {
@@ -70,8 +75,26 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
       modalElement.present();
       return modalElement.onDidDismiss();
     }).then(resultData => {
-      console.log('Modal Result');
-      console.log(resultData);
+      this.loadingCtrl.create({message: "Booking Place..."}).then(loadingEl => {
+        loadingEl.present();
+        console.log('Modal Result');
+        console.log(resultData);
+        let newBooking = {
+          id: Math.random().toString(),
+          placeId: this.place.id,
+          placeTitle: this.place.title,
+          firstName: resultData.data.bookingData.firstName,
+          lastName: resultData.data.bookingData.lastName,
+          guestNumber: resultData.data.bookingData.guestNumber,
+          bookedFrom: resultData.data.bookingData.startDate,
+          bookedTo: resultData.data.bookingData.endDate,
+          userId: this.authService.userId 
+        }
+        this.bookingService.addBooking(newBooking).subscribe(() => {
+          loadingEl.dismiss();
+        });
+      });
+      
     });
   }
 
