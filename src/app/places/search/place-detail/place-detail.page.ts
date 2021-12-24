@@ -16,6 +16,7 @@ import { AuthService } from 'src/app/auth/auth.service';
 export class PlaceDetailPage implements OnInit, OnDestroy {
   place: Place;
   private placesSub: Subscription;
+  isBookable = false;
 
   constructor(
     private navCtrl: NavController,
@@ -36,6 +37,7 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
       }
       this.placesSub = this.placesService.getPlace(paramMap.get('placeId')).subscribe(place => {
         this.place = place;
+        this.isBookable = this.place.userId !== this.authService.userId;
       });
     });
   }
