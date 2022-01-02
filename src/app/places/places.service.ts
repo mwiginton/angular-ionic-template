@@ -10,11 +10,7 @@ import { HttpClient } from '@angular/common/http';
 })
 export class PlacesService {
 
-  private _places = new BehaviorSubject<Place[]>([
-    new Place('p1', 'Place 1', 'Place 1 Description', 150, new Date('2019-01-01'), new Date('2019-12-31'), 'abc'),
-    new Place('p2', 'Place 2', 'Place 2 Description', 200, new Date('2019-01-01'), new Date('2019-12-31'), 'abc'),
-    new Place('p3', 'Place 3', 'Place 3 Description', 250, new Date('2019-01-01'), new Date('2019-12-31'), 'abc')
-  ]);
+  private _places = new BehaviorSubject<Place[]>([]);
 
   get places() {
     return this._places.asObservable();
@@ -24,6 +20,25 @@ export class PlacesService {
     private authService: AuthService,
     private http: HttpClient
   ) { }
+
+  getPlaces() {
+    return this.http
+      .get<{[key: string]: any}>('https://angular-ionic-template-default-rtdb.firebaseio.com/offered-places.json')
+      .pipe(map(data => {
+        const places = []
+        for (let key in data) {
+          if (data.hasOwnProperty(key)) {
+            places.push(new Place(
+              key, data[key].title, data[key].description, data[key].price, new Date(data[key].availableFrom), new Date(data[key].availableTo), data[key].userId
+            ));
+          }
+        }
+        return places;
+      }),
+      tap(places => {
+        this._places.next(places);
+      }));
+  }
 
   getPlace(id: any) {
     return this.places.pipe(
@@ -55,13 +70,6 @@ export class PlacesService {
         this._places.next(places.concat(place));
       })
     );
-
-    // return this.places.pipe(
-    //   take(1),
-    //   delay(1000), 
-    //   tap(places => {
-    //     this._places.next(places.concat(place));
-    // }));
   }
 
   updatePlace(place: any) {
