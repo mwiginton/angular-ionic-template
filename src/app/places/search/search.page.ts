@@ -15,6 +15,7 @@ export class SearchPage implements OnInit, OnDestroy {
   public loadedPlaces: Place[];
   public relevantPlaces: Place[];
   private placesSub: Subscription;
+  isLoading = false;
 
   constructor(
     private placesService: PlacesService,
@@ -28,14 +29,19 @@ export class SearchPage implements OnInit, OnDestroy {
     });
   }
 
+  ionViewWillEnter() {
+    this.isLoading = true;
+    this.placesService.getPlaces().subscribe(() => {
+      this.isLoading = false;
+    });
+  }
+
   onFilterUpdate(event: CustomEvent<SegmentChangeEventDetail>) {
     console.log(event.detail);
     if (event.detail.value === 'all') {
       this.relevantPlaces = this.loadedPlaces;
     } else {
       this.relevantPlaces = this.loadedPlaces.filter(place => place.userId !== this.authService.userId);
-      console.log("relevant places");
-      console.log(this.relevantPlaces);
     }
   }
 
