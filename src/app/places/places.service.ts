@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { Place } from './place.model';
 import { take, map, tap, delay, switchMap } from 'rxjs/operators';
@@ -90,6 +90,13 @@ export class PlacesService {
     let updatedPlaces: Place[];
     return this.places.pipe(
       take(1), switchMap(places => {
+        if (!places) {
+          return this.getPlaces();
+        } else {
+          return of(places);
+        }
+      }),
+      switchMap(places => {
         const updatedPlaceIndex = places.findIndex(currentPlace => currentPlace.id === place.id);
         updatedPlaces = [...places];
         const oldPlace = updatedPlaces[updatedPlaceIndex];
@@ -107,7 +114,8 @@ export class PlacesService {
           `https://angular-ionic-template-default-rtdb.firebaseio.com/offered-places/${place.id}.json`,
           { ...updatedPlaces[updatedPlaceIndex], id: null}
         );
-      }), tap(() => {
+      }), 
+      tap(() => {
         this._places.next(updatedPlaces);
       }))
   }

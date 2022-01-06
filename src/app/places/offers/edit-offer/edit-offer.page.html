@@ -3,9 +3,9 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/places/tabs/offers"></ion-back-button>
     </ion-buttons>
-    <ion-title>Edit {{ place.title }}</ion-title>
-    <ion-buttons slot="primary">
-      <ion-button (click)="onUpdateOffer()" [disabled]="!offerForm?.valid">
+    <ion-title *ngIf="place">Edit {{ place.title }}</ion-title>
+    <ion-buttons slot="primary" *ngIf="place">
+      <ion-button (click)="onUpdateOffer()" [disabled]="!offerForm.valid">
         <ion-icon name="checkbox" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
