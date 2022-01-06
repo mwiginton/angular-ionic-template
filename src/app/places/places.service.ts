@@ -41,12 +41,26 @@ export class PlacesService {
   }
 
   getPlace(id: any) {
-    return this.places.pipe(
-      take(1), 
-      map(places => {
-        return {...places.find(place => place.id === id)};
+    return this.http.get<any>(`https://angular-ionic-template-default-rtdb.firebaseio.com/offered-places/${id}.json`
+    ).pipe(
+      map(data => {
+        return new Place(
+          id, 
+          data.title, 
+          data.description, 
+          data.price, 
+          new Date(data.availableFrom), 
+          new Date(data.availableTo), 
+          data.userId
+        );
       })
-    );   
+    );
+    // return this.places.pipe(
+    //   take(1), 
+    //   map(places => {
+    //     return {...places.find(place => place.id === id)};
+    //   })
+    // );   
   }
 
   addPlace(place: Place) {
