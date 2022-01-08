@@ -21,6 +21,9 @@ export class CreateBookingComponent implements OnInit {
     const availableFrom = new Date(this.selectedPlace.availableFrom);
     const availableTo = new Date(this.selectedPlace.availableTo);
 
+    console.log('avail from date');
+    console.log(availableFrom);
+
     if (this.selectedMode === 'random') {
       this.startDate = new Date(
         availableFrom.getTime() +

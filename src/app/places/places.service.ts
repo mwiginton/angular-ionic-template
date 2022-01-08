@@ -55,12 +55,6 @@ export class PlacesService {
         );
       })
     );
-    // return this.places.pipe(
-    //   take(1), 
-    //   map(places => {
-    //     return {...places.find(place => place.id === id)};
-    //   })
-    // );   
   }
 
   addPlace(place: Place) {
