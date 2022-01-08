@@ -20,27 +20,26 @@ export class BookingsService {
     return this._bookings.asObservable()
   }
 
+  getBookings() {
+    return this.http
+    .get<{[key: string]: any}>(`https://angular-ionic-template-default-rtdb.firebaseio.com/bookings.json?orderBy="userId"&equalTo="${this.authService.userId}"`)
+    .pipe(map(data => {
+      const bookings = []
+      for (let key in data) {
+        if (data.hasOwnProperty(key)) {
+          bookings.push(new Booking(
+            key, data[key].placeId, data[key].userId, data[key].placeTitle, data[key].firstName, data[key].lastName, data[key].guestNumber, new Date(data[key].bookedFrom), new Date(data[key].bookedTo)
+          ));
+        }
+      }
+      return bookings;
+    }),
+    tap(bookings => {
+      this._bookings.next(bookings);
+    }));
+  }
+
   addBooking(booking: Booking) {
-    // let generatedId: string;
-    // place.id = null;
-    // place.userId = this.authService.userId;
-
-    // return this.http
-    // .post<{name: string}>('https://angular-ionic-template-default-rtdb.firebaseio.com/offered-places.json', { 
-    //   ...place
-    // })
-    // .pipe(
-    //   switchMap(data => {
-    //     generatedId = data.name;
-    //     return this.places;
-    //   }),
-    //   take(1),
-    //   tap(places => {
-    //     place.id = generatedId;
-    //     this._places.next(places.concat(place));
-    //   })
-    // );
-
     let generatedId: string;
     booking.id = null;
     booking.userId = this.authService.userId;
@@ -60,22 +59,23 @@ export class BookingsService {
         this._bookings.next(bookings.concat(booking));
       })
     );
-
-    // return this.bookings.pipe(
-    //   take(1),
-    //   delay(1000),
-    //   tap(bookings => {
-    //     this._bookings.next(bookings.concat(booking));
-    //   })
-    // );
   }
 
   cancelBooking(bookingId: string) {
-    return this.bookings.pipe(take(1),
-      delay(1000),
-      tap(bookings => {
-        this._bookings.next(bookings.filter(booking => booking.id !== bookingId));
-      })
-    );
+    return this.http
+    .delete(`https://angular-ionic-template-default-rtdb.firebaseio.com/bookings/${bookingId}.json`)
+    .pipe(switchMap(() => {
+      return this.bookings
+    }),
+    take(1),
+    tap(bookings => {
+      this._bookings.next(bookings.filter(booking => booking.id !== bookingId));
+    }));
+    // return this.bookings.pipe(take(1),
+    //   delay(1000),
+    //   tap(bookings => {
+    //     this._bookings.next(bookings.filter(booking => booking.id !== bookingId));
+    //   })
+    // );
   }
 }
