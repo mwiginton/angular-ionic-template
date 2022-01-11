@@ -61,13 +61,17 @@ export class PlacesService {
     // place.id = Math.random().toString();
     let generatedId: string;
     place.id = null;
-    place.userId = this.authService.userId;
 
-    return this.http
-    .post<{name: string}>('https://angular-ionic-template-default-rtdb.firebaseio.com/offered-places.json', { 
-      ...place
-    })
-    .pipe(
+    return this.authService.userId.pipe(take(1), switchMap(userId => {
+      if (!userId) {
+        throw new Error("User ID not found");
+      }
+      place.userId = userId;
+      return this.http
+        .post<{name: string}>('https://angular-ionic-template-default-rtdb.firebaseio.com/offered-places.json', { 
+          ...place
+        })
+      }),
       switchMap(data => {
         generatedId = data.name;
         return this.places;

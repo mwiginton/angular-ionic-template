@@ -42,13 +42,17 @@ export class BookingsService {
   addBooking(booking: Booking) {
     let generatedId: string;
     booking.id = null;
-    booking.userId = this.authService.userId;
 
-    return this.http
-    .post<{name: string}>('https://angular-ionic-template-default-rtdb.firebaseio.com/bookings.json', { 
-      ...booking
-    })
-    .pipe(
+    return this.authService.userId.pipe(take(1), switchMap(userId => {
+      if (!userId) {
+        throw new Error("User ID not found");
+      }
+      booking.userId = userId;
+      return this.http
+        .post<{name: string}>('https://angular-ionic-template-default-rtdb.firebaseio.com/bookings.json', { 
+          ...booking
+        })
+      }),
       switchMap(data => {
         generatedId = data.name;
         return this.bookings;
@@ -71,11 +75,5 @@ export class BookingsService {
     tap(bookings => {
       this._bookings.next(bookings.filter(booking => booking.id !== bookingId));
     }));
-    // return this.bookings.pipe(take(1),
-    //   delay(1000),
-    //   tap(bookings => {
-    //     this._bookings.next(bookings.filter(booking => booking.id !== bookingId));
-    //   })
-    // );
   }
 }

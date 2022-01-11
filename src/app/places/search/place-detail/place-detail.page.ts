@@ -7,6 +7,7 @@ import { CreateBookingComponent } from 'src/app/bookings/create-booking/create-b
 import { Subscription } from 'rxjs';
 import { BookingsService } from 'src/app/bookings/bookings.service';
 import { AuthService } from 'src/app/auth/auth.service';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-place-detail',
@@ -17,6 +18,7 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
   place: Place;
   private placesSub: Subscription;
   isBookable = false;
+  loggedInUser: any;
 
   constructor(
     private navCtrl: NavController,
@@ -35,9 +37,18 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
         this.navCtrl.navigateBack('/places/tabs/offers');
         return;
       }
-      this.placesSub = this.placesService.getPlace(paramMap.get('placeId')).subscribe(place => {
+      let fetchedUserId: string;
+      this.authService.userId.pipe(switchMap(userId => {
+        if (!userId) {
+          throw new Error("No User found");
+        }
+        fetchedUserId = userId;
+        this.loggedInUser = userId;
+        return this.placesService.getPlace(paramMap.get('placeId'))
+      }))
+      .subscribe(place => {
         this.place = place;
-        this.isBookable = this.place.userId !== this.authService.userId;
+        this.isBookable = this.place.userId !== fetchedUserId;
       });
     });
   }
@@ -90,13 +101,12 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
           guestNumber: resultData.data.bookingData.guestNumber,
           bookedFrom: resultData.data.bookingData.startDate,
           bookedTo: resultData.data.bookingData.endDate,
-          userId: this.authService.userId 
+          userId: this.loggedInUser
         }
         this.bookingService.addBooking(newBooking).subscribe(() => {
           loadingEl.dismiss();
         });
-      });
-      
+      });      
     });
   }
 
