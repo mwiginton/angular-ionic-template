@@ -46,6 +46,8 @@ export class AuthPage implements OnInit {
           loadingEl.dismiss();
           this.router.navigateByUrl('/places/tabs/search')
         }, errorRes => {
+          console.log('error');
+          console.log(errorRes);
           loadingEl.dismiss();
           const errorCode = errorRes.error.error.message;
           let message = 'An error occured signing you in'

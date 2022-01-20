@@ -21,9 +21,15 @@ export class BookingsService {
   }
 
   getBookings() {
-    return this.http
-    .get<{[key: string]: any}>(`https://angular-ionic-template-default-rtdb.firebaseio.com/bookings.json?orderBy="userId"&equalTo="${this.authService.userId}"`)
-    .pipe(map(data => {
+    return this.authService.userId.pipe(switchMap(userId => {
+      if (!userId) {
+        throw new Error("User ID not found");
+      }
+      
+      return this.http
+        .get<{[key: string]: any}>(`https://angular-ionic-template-default-rtdb.firebaseio.com/bookings.json?orderBy="userId"&equalTo="${userId}"`)
+    }),
+    map(data => {
       const bookings = []
       for (let key in data) {
         if (data.hasOwnProperty(key)) {
