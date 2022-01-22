@@ -4,6 +4,7 @@ import { AuthService } from '../auth/auth.service';
 import { Booking } from './booking-model';
 import { take, map, tap, delay, switchMap } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
+import { tokenName } from '@angular/compiler';
 
 @Injectable({
   providedIn: 'root'
@@ -21,13 +22,18 @@ export class BookingsService {
   }
 
   getBookings() {
-    return this.authService.userId.pipe(switchMap(userId => {
+    let fetchedUserId: string;
+    return this.authService.userId.pipe(take(1), switchMap(userId => {
       if (!userId) {
         throw new Error("User ID not found");
       }
-      
+      fetchedUserId = userId;
+      return this.authService.token;
+    }),
+    take(1),
+    switchMap(token =>{
       return this.http
-        .get<{[key: string]: any}>(`https://angular-ionic-template-default-rtdb.firebaseio.com/bookings.json?orderBy="userId"&equalTo="${userId}"`)
+      .get<{[key: string]: any}>(`https://angular-ionic-template-default-rtdb.firebaseio.com/bookings.json?orderBy="userId"&equalTo="${fetchedUserId}"&auth=${token}`)
     }),
     map(data => {
       const bookings = []
@@ -48,14 +54,20 @@ export class BookingsService {
   addBooking(booking: Booking) {
     let generatedId: string;
     booking.id = null;
+    let fetchedUserId: string;
 
     return this.authService.userId.pipe(take(1), switchMap(userId => {
-      if (!userId) {
-        throw new Error("User ID not found");
-      }
-      booking.userId = userId;
-      return this.http
-        .post<{name: string}>('https://angular-ionic-template-default-rtdb.firebaseio.com/bookings.json', { 
+        if (!userId) {
+          throw new Error("User ID not found");
+        }
+        fetchedUserId = userId;
+        booking.userId = userId;
+        return this.authService.token;
+      }),
+      take(1),
+      switchMap(token => {
+        return this.http
+        .post<{name: string}>(`https://angular-ionic-template-default-rtdb.firebaseio.com/bookings.json?auth=${token}`, { 
           ...booking
         })
       }),
@@ -72,9 +84,11 @@ export class BookingsService {
   }
 
   cancelBooking(bookingId: string) {
-    return this.http
-    .delete(`https://angular-ionic-template-default-rtdb.firebaseio.com/bookings/${bookingId}.json`)
-    .pipe(switchMap(() => {
+    return this.authService.token.pipe(take(1), switchMap(token => {
+      return this.http
+        .delete(`https://angular-ionic-template-default-rtdb.firebaseio.com/bookings/${bookingId}.json?auth=${token}`)
+    }),
+    switchMap(() => {
       return this.bookings
     }),
     take(1),

@@ -34,10 +34,8 @@ export class AuthPage implements OnInit {
         let authObs: Observable<any>;
 
         if (this.isLogin) {
-          console.log("SIGN IN");
           authObs = this.authService.login(email, password);
         } else {
-          console.log("SIGN UP")
           authObs = this.authService.signup(email, password);
         }
 
@@ -46,8 +44,6 @@ export class AuthPage implements OnInit {
           loadingEl.dismiss();
           this.router.navigateByUrl('/places/tabs/search')
         }, errorRes => {
-          console.log('error');
-          console.log(errorRes);
           loadingEl.dismiss();
           const errorCode = errorRes.error.error.message;
           let message = 'An error occured signing you in'
@@ -73,6 +69,7 @@ export class AuthPage implements OnInit {
     const password = form.value.password;
 
     this.authenticate(email, password);
+    form.reset();
   }
 
   private showAlert(message: string) {

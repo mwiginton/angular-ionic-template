@@ -22,9 +22,11 @@ export class PlacesService {
   ) { }
 
   getPlaces() {
-    return this.http
-      .get<{[key: string]: any}>('https://angular-ionic-template-default-rtdb.firebaseio.com/offered-places.json')
-      .pipe(map(data => {
+    return this.authService.token.pipe(take(1), switchMap(token => {
+      return this.http
+      .get<{[key: string]: any}>(`https://angular-ionic-template-default-rtdb.firebaseio.com/offered-places.json?auth=${token}`)
+    }),
+    map(data => {
         const places = []
         for (let key in data) {
           if (data.hasOwnProperty(key)) {
@@ -37,13 +39,15 @@ export class PlacesService {
       }),
       tap(places => {
         this._places.next(places);
-      }));
+      })
+    );
   }
 
   getPlace(id: any) {
-    return this.http.get<any>(`https://angular-ionic-template-default-rtdb.firebaseio.com/offered-places/${id}.json`
-    ).pipe(
-      map(data => {
+    return this.authService.token.pipe(take(1), switchMap(token => {
+      return this.http.get<any>(`https://angular-ionic-template-default-rtdb.firebaseio.com/offered-places/${id}.json?auth=${token}`)
+    }),
+    map(data => {
         return new Place(
           id, 
           data.title, 
@@ -61,60 +65,72 @@ export class PlacesService {
     // place.id = Math.random().toString();
     let generatedId: string;
     place.id = null;
+    let fetchedUserId: string;
 
-    return this.authService.userId.pipe(take(1), switchMap(userId => {
-      if (!userId) {
-        throw new Error("User ID not found");
-      }
-      place.userId = userId;
-      return this.http
-        .post<{name: string}>('https://angular-ionic-template-default-rtdb.firebaseio.com/offered-places.json', { 
-          ...place
-        })
-      }),
-      switchMap(data => {
-        generatedId = data.name;
-        return this.places;
-      }),
+    return this.authService.userId.pipe(
       take(1),
-      tap(places => {
-        place.id = generatedId;
-        this._places.next(places.concat(place));
-      })
-    );
+      switchMap(userId => {
+        fetchedUserId = userId;
+        return this.authService.token;
+      }), 
+      take(1),
+      switchMap(token => {
+        if (!fetchedUserId) {
+          throw new Error("User ID not found");
+        }
+        place.userId = fetchedUserId;
+        return this.http
+          .post<{name: string}>(`https://angular-ionic-template-default-rtdb.firebaseio.com/offered-places.json?auth=${token}`, { 
+            ...place
+          })
+        }),
+        switchMap(data => {
+          generatedId = data.name;
+          return this.places;
+        }),
+        take(1),
+        tap(places => {
+          place.id = generatedId;
+          this._places.next(places.concat(place));
+        })
+      );
   }
 
   updatePlace(place: any) {
     let updatedPlaces: Place[];
-    return this.places.pipe(
-      take(1), switchMap(places => {
-        if (!places) {
-          return this.getPlaces();
-        } else {
-          return of(places);
-        }
-      }),
-      switchMap(places => {
-        const updatedPlaceIndex = places.findIndex(currentPlace => currentPlace.id === place.id);
-        updatedPlaces = [...places];
-        const oldPlace = updatedPlaces[updatedPlaceIndex];
-        
-        updatedPlaces[updatedPlaceIndex] = new Place(
-          oldPlace.id, 
-          place.title, 
-          place.description,
-          oldPlace.price,
-          oldPlace.availableFrom,
-          oldPlace.availableTo,
-          oldPlace.userId
-        );
-        return this.http.put(
-          `https://angular-ionic-template-default-rtdb.firebaseio.com/offered-places/${place.id}.json`,
-          { ...updatedPlaces[updatedPlaceIndex], id: null}
-        );
-      }), 
-      tap(() => {
-        this._places.next(updatedPlaces);
-      }))
+    let fetchedToken: string;
+    return this.authService.token.pipe(take(1), switchMap(token => {
+      fetchedToken = token;
+      return this.places;
+    }),
+    take(1), switchMap(places => {
+      if (!places) {
+        return this.getPlaces();
+      } else {
+        return of(places);
+      }
+    }),
+    switchMap(places => {
+      const updatedPlaceIndex = places.findIndex(currentPlace => currentPlace.id === place.id);
+      updatedPlaces = [...places];
+      const oldPlace = updatedPlaces[updatedPlaceIndex];
+      
+      updatedPlaces[updatedPlaceIndex] = new Place(
+        oldPlace.id, 
+        place.title, 
+        place.description,
+        oldPlace.price,
+        oldPlace.availableFrom,
+        oldPlace.availableTo,
+        oldPlace.userId
+      );
+      return this.http.put(
+        `https://angular-ionic-template-default-rtdb.firebaseio.com/offered-places/${place.id}.json?auth=${fetchedToken}`,
+        { ...updatedPlaces[updatedPlaceIndex], id: null}
+      );
+    }), 
+    tap(() => {
+      this._places.next(updatedPlaces);
+    }))
   }
 }

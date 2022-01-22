@@ -7,7 +7,7 @@ import { CreateBookingComponent } from 'src/app/bookings/create-booking/create-b
 import { Subscription } from 'rxjs';
 import { BookingsService } from 'src/app/bookings/bookings.service';
 import { AuthService } from 'src/app/auth/auth.service';
-import { switchMap } from 'rxjs/operators';
+import { switchMap, take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-place-detail',
@@ -38,7 +38,7 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
         return;
       }
       let fetchedUserId: string;
-      this.authService.userId.pipe(switchMap(userId => {
+      this.authService.userId.pipe(take(1),switchMap(userId => {
         if (!userId) {
           throw new Error("No User found");
         }
@@ -90,8 +90,6 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
     }).then(resultData => {
       this.loadingCtrl.create({message: "Booking Place..."}).then(loadingEl => {
         loadingEl.present();
-        console.log('Modal Result');
-        console.log(resultData);
         let newBooking = {
           id: Math.random().toString(),
           placeId: this.place.id,
